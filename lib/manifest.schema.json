@@ -1,0 +1,245 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Schema for cicada-build manifest.js",
+    "type": "object",
+    "properties": {
+        "common": {
+            "$ref": "#/$defs/common"
+        },
+        "packs": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/pack"
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "packs"
+    ],
+    "$defs": {
+        "capabilities": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "common": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "version": {
+                    "$ref": "#/$defs/version"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "min_engine_version": {
+                    "$ref": "#/$defs/version"
+                },
+                "base_game_version": {
+                    "$ref": "#/$defs/version"
+                },
+                "lock_template_options": {
+                    "type": "boolean"
+                },
+                "capabilities": {
+                    "$ref": "#/$defs/capabilities"
+                },
+                "metadata": {
+                    "$ref": "#/$defs/metadata"
+                }
+            },
+            "required": []
+        },
+        "dependencies": {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/version"
+                    }
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/dependency"
+                    }
+                }
+            ]
+        },
+        "dependency": {
+            "allOf": [
+                {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "uuid": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                }
+                            },
+                            "required": [
+                                "uuid"
+                            ]
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "module_name": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "module_name"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "version": {
+                            "$ref": "#/$defs/version"
+                        }
+                    },
+                    "required": [
+                        "version"
+                    ]
+                }
+            ]
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "license": {
+                    "type": "string"
+                },
+                "generated_with": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/version"
+                        }
+                    }
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "module": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "resources",
+                        "script",
+                        "data",
+                        "client_data",
+                        "interface",
+                        "world_template",
+                        "skin_pack"
+                    ]
+                },
+                "uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "version": {
+                    "$ref": "#/$defs/version"
+                },
+                "include": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "description",
+                "type",
+                "uuid",
+                "include"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "const": "script"
+                            }
+                        }
+                    },
+                    "then": {
+                        "type": "object",
+                        "properties": {
+                            "language": {
+                                "const": "javascript"
+                            },
+                            "entry": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "language",
+                            "entry"
+                        ]
+                    }
+                }
+            ]
+        },
+        "pack": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/common"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "uuid": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "modules": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/$defs/module"
+                            },
+                            "minItems": 1
+                        },
+                        "dependencies": {
+                            "$ref": "#/$defs/dependencies"
+                        }
+                    },
+                    "required": [
+                        "uuid",
+                        "modules"
+                    ]
+                }
+            ]
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d+)*(-.+)?$"
+        }
+    }
+}
