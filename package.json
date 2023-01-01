@@ -8,7 +8,7 @@
   },
   "files": [
     "bin/*.cjs",
-    "dist/**/*.js"
+    "dist/**"
   ],
   "scripts": {
     "prepare": "gulp",
