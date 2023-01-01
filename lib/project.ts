@@ -191,7 +191,7 @@ export class Pack {
     uuid:                 ArrayLike<number>;
     description:          string;
     version:              SemVer;
-    icon:                 string|null;
+    icon:                 string;
     minEngineVersion:     SemVer|null;
 
     baseGameVersion:      SemVer|null;
@@ -213,9 +213,7 @@ export class Pack {
         this.uuid                = packSrc.uuid;
         this.description         = packSrc.description;
         this.version             = parseVer(packSrc.version)!;
-        this.icon                = packSrc.icon != null
-                                   ? path.resolve(srcDir, packSrc.icon)
-                                   : null;
+        this.icon                = path.resolve(srcDir, packSrc.icon ?? "pack_icon.png");
         this.minEngineVersion    = parseVer(packSrc.min_engine_version);
 
         // These are specific to world templates.

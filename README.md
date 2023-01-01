@@ -1,7 +1,7 @@
 # cicada-build
 
-`cicada-build` is an opinionated build system for Minecraft Bedrock addons
-based on [Gulp](https://gulpjs.com/). Features include:
+`cicada-build` is a build system for Minecraft Bedrock addons based on
+[Gulp](https://gulpjs.com/). Features include:
 
 <dl>
     <dt>Better <code>manifest.json</code> handling</dt>
@@ -14,7 +14,11 @@ based on [Gulp](https://gulpjs.com/). Features include:
     </dd>
     <dt>TypeScript integration</dt>
     <dd>
-        <code>cicada-build</code> automatically transpiles scripts written in <a href="https://www.typescriptlang.org/">TypeScript</a> into JavaScript. It can also bundle <a href="https://www.npmjs.com/">NPM</a> packages with your script as long as they are ECMAScript modules. (Bundling CommonJS modules is not supported at the moment.)
+        <code>cicada-build</code> automatically transpiles scripts written in <a href="https://www.typescriptlang.org/">TypeScript</a> into JavaScript.
+    </dd>
+    <dt>NPM integration</dt>
+    <dd>
+        <code>cicada-build</code> can also bundle <a href="https://www.npmjs.com/">NPM</a> packages with your script as long as they are ECMAScript modules. (Bundling CommonJS modules is not supported at the moment.)
     </dd>
     <dt>Protocol Buffers integration</dt>
     <dd>
@@ -28,7 +32,7 @@ based on [Gulp](https://gulpjs.com/). Features include:
 
 ## How to use
 
-FIXME: Documentation forthcoming.
+See [Documentation index](doc/index.md).
 
 ## Release notes
 

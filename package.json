@@ -1,7 +1,7 @@
 {
   "name": "@depressed-pho/cicada-build",
   "version": "1.0.0",
-  "description": "Opinionated build system for Minecraft Bedrock addons based on Gulp",
+  "description": "Build system for Minecraft Bedrock addons based on Gulp",
   "type": "module",
   "bin": {
     "cicada-build": "bin/cicada-build.cjs"

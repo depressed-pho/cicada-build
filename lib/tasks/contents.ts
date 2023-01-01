@@ -47,15 +47,23 @@ export function contents(cb: TaskCallback): void {
                             // RewriteImports is going to need them.
                             vendor.task(vendorPath)
                         ),
-                        function transpile() {
-                            // THINKME: Maybe support PureScript as well?
-                            return src(srcGlobs, {cwd: "src", cwdbase: true, sourcemaps: true})
-                                .pipe(src(srcGlobs, {cwd: genPath, cwdbase: true, sourcemaps: true}))
-                                .pipe(ignore.exclude("**/*.proto"))
-                                .pipe(transpileTypeScript("src/tsconfig.json"))
-                                .pipe(rewrite.stream(buildPath))
-                                .pipe(dest(buildPath, {sourcemaps: "."}));
-                        }
+                        parallel(
+                            function copy() {
+                                return src(srcGlobs, {cwd: "src", cwdbase: true})
+                                    .pipe(src(srcGlobs, {cwd: genPath, cwdbase: true}))
+                                    .pipe(ignore.include("**/*.js"))
+                                    .pipe(rewrite.stream(buildPath))
+                                    .pipe(dest(buildPath));
+                            },
+                            function transpile() {
+                                // THINKME: Maybe support PureScript as well?
+                                return src(srcGlobs, {cwd: "src", cwdbase: true, sourcemaps: true})
+                                    .pipe(ignore.include("**/*.ts"))
+                                    .pipe(transpileTypeScript("src/tsconfig.json"))
+                                    .pipe(rewrite.stream(buildPath))
+                                    .pipe(dest(buildPath, {sourcemaps: "."}));
+                            }
+                        )
                     ));
             }
             else {

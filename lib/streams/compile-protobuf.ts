@@ -37,6 +37,8 @@ class CompileProtobuf extends Writable {
         const { stdout, stderr } = await promisify(execFile)(
             this.#protoc!, [
                 "--ts_out", destDir,
+                "--ts_opt", "add_pb_suffix",
+                "--ts_opt", "output_javascript_es2020",
                 "--ts_opt", "ts_nocheck",
                 "--proto_path", path.dirname(vinyl.path),
                 vinyl.path
