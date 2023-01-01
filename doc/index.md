@@ -209,4 +209,10 @@ import { Foo } from "./foo_pb"; // You need a suffix "_pb" to import them.
 ```
 
 Note that you need to install the `protoc` program on your system to
-compile `.proto` files.
+compile `.proto` files. Also
+[@protobuf-ts/runtime](https://github.com/timostamm/protobuf-ts/tree/master/packages/runtime)
+needs to be bundled:
+
+```shell
+% npm i @protobuf-ts/runtime
+```
