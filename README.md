@@ -32,7 +32,7 @@
 
 ## How to use
 
-See [Documentation index](doc/index.md).
+See [documentation](doc/index.md).
 
 ## Release notes
 
