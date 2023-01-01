@@ -11,6 +11,7 @@
     "dist/**/*.js"
   ],
   "scripts": {
+    "prepare": "gulp",
     "build": "gulp",
     "clean": "gulp clean",
     "watch": "gulp watch"

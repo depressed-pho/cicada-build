@@ -12,7 +12,7 @@ an NPM package:
 Then install `cicada-build` as a development dependency:
 
 ```shell
-% npm i -D depressed-pho/cicada-build
+% npm i -D github:depressed-pho/cicada-build
 ```
 
 Now setup some package scripts. This isn't mandatory but is for your
@@ -207,3 +207,6 @@ message Foo {
 ```typescript
 import { Foo } from "./foo_pb"; // You need a suffix "_pb" to import them.
 ```
+
+Note that you need to install the `protoc` program on your system to
+compile `.proto` files.
