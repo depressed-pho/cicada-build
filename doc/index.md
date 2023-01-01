@@ -1,7 +1,7 @@
 # Basics
 
 First, your addon must have an [NPM](https://www.npmjs.com/)
-`package.json`. Use `npm init` if it doesn't already have one. The addon
+`package.json`. Run `npm init` if it doesn't already have one. The addon
 does not need to be published to the NPM repository, but it still has to be
 an NPM package:
 
