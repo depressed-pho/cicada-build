@@ -1,6 +1,6 @@
 # Release notes
 
-## 1.1.0 -- not released yet
+## 1.1.0 -- 2023-01-04
 
 * Renamed the package from `@depressed-pho/cicada-build` to
   `cicada-build`. Since it's not meant to be published on the public NPM
