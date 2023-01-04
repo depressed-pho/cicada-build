@@ -6,8 +6,67 @@ import { Transform, TransformCallback } from "node:stream";
 import { readAll } from "./streams/read-all.js";
 import { requireUncached } from "./utils.js";
 
+export class Pattern {
+    readonly #left:   string;
+    readonly #right?: string;
+
+    constructor(patStr: string) {
+        const wildPos = patStr.indexOf("*");
+        if (wildPos >= 0) {
+            this.#left  = patStr.substring(0, wildPos);
+            this.#right = patStr.substring(wildPos + 1);
+            if (this.#right.includes("*")) {
+                throw new Error(`A pattern can have at most one wildcard '*': ${patStr}`);
+            }
+        }
+        else {
+            this.#left = patStr;
+        }
+    }
+
+    get hasWildcard(): boolean {
+        return this.#right !== undefined;
+    }
+
+    toString(): string {
+        return this.replaceWildcard("*");
+    }
+
+    replaceWildcard(str: string): string {
+        if (this.#right !== undefined) {
+            return this.#left + str + this.#right;
+        }
+        else {
+            return this.#left;
+        }
+    }
+
+    /** Like RegExp.prototype.exec, this returns [matched, ...captured] on a
+     * successful match, or null on a failed one. */
+    exec(str: string): string[]|null {
+        if (str.startsWith(this.#left)) {
+            if (this.#right !== undefined) {
+                // The pattern has a wildcard.
+                if (str.endsWith(this.#right)) {
+                    const captured = str.slice(this.#left.length, -1 * this.#right.length);
+                    return [str, captured];
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return [str];
+            }
+        }
+        else {
+            return null;
+        }
+    }
+}
+
 export interface Candidate {
-    path:     string;
+    path:     Pattern;
     isSource: boolean; // Whether the path points at a source file or a destination file.
 }
 
@@ -39,7 +98,7 @@ export class RewriteImports {
                                 name,
                                 candidates.map(path => {
                                     return {
-                                        path,
+                                        path: new Pattern(path),
                                         isSource: true
                                     };
                                 })
@@ -142,6 +201,11 @@ class RewriteImportsImpl extends Transform {
         if (origPath.startsWith(".")) {
             return this.#rewriteRelativePath(origPath, srcPath);
         }
+        else if (origPath.startsWith("@minecraft/")) {
+            // Special case: we don't need to rewrite system modules native
+            // to Minecraft Bedrock.
+            return origPath;
+        }
         else {
             return this.#rewriteSymbolicPath(origPath, srcPath, destPath);
         }
@@ -156,19 +220,23 @@ class RewriteImportsImpl extends Transform {
         else {
             // A special case: the referred file may reside in a different
             // root directory or is maybe not generated/copied yet.
-            return origPath + ".js";
+            return origPath;
         }
     }
 
     #rewriteSymbolicPath(origPath: string, srcPath: string, destPath: string): string {
         for (const [from, to] of this.#aliases) {
-            if (origPath === from) {
+            const match = new Pattern(from).exec(origPath);
+            if (!match) {
+                continue;
+            }
+            else if (match.length == 1) {
                 // Exact match
                 for (const candidate of to) {
-                    if (candidate.path.endsWith("*")) {
+                    if (candidate.path.hasWildcard) {
                         throw new Error(`Invalid path candidate: ${candidate.path}`);
                     }
-                    const base     = path.resolve(this.#aliasBase, candidate.path);
+                    const base     = path.resolve(this.#aliasBase, candidate.path.toString());
                     const resolved = candidate.isSource
                           ? this.#resolve(origPath, srcPath, base)
                           : this.#resolve(origPath, destPath, base);
@@ -178,16 +246,16 @@ class RewriteImportsImpl extends Transform {
                 }
                 throw new Error(`${srcPath}: Module ${origPath} not found in ${inspect(to)}`);
             }
-            else if (from.endsWith("*") && origPath.startsWith(from.slice(0, -1))) {
+            else {
                 // Wildcard match
-                const wildcarded = origPath.slice(from.length - 1);
+                const wildcarded = match[1]!;
 
                 for (const candidate of to) {
-                    if (!candidate.path.endsWith("*")) {
+                    if (!candidate.path.hasWildcard) {
                         throw new Error(`Invalid path candidate: ${candidate.path}`);
                     }
-                    const stem     = candidate.path.slice(0, -1);
-                    const base     = path.resolve(this.#aliasBase, stem + wildcarded);
+                    const replaced = candidate.path.replaceWildcard(wildcarded);
+                    const base     = path.resolve(this.#aliasBase, replaced);
                     const resolved = candidate.isSource
                           ? this.#resolve(origPath, srcPath, base)
                           : this.#resolve(origPath, destPath, base);

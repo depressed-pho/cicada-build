@@ -161,12 +161,11 @@ options suitable for the scripting API but you can also create
 [src/tsconfig.json](https://www.typescriptlang.org/tsconfig/) to further
 modify the behavior of the transpiler.
 
-Note that `import` statements should not have extensions. `cicada-build`
-will automatically append extensions after the transpilation:
+Note that relative `import` statements should have extensions:
 
 ```typescript
-import { Foo } from "./foo"; // Good
-//import { Foo } from "./foo.js"; // Bad. Don't do this.
+import { Foo } from "./foo.js"; // Good
+//import { Foo } from "./foo"; // Bad. Don't do this.
 ```
 
 # NPM integration

@@ -11,7 +11,7 @@ export function transpileTypeScript(tsConfigPath: string) {
             rootDirs: ["src", "dist/generated"],
             baseUrl: "src",
             module: "ES2020",
-            moduleResolution: "node",
+            moduleResolution: "nodenext",
             paths:  {},
             target: "ES2022",
             explainFiles: true

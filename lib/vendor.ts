@@ -1,17 +1,19 @@
 import * as fs from "node:fs";
+import * as ignore from "gulp-ignore";
 import * as path from "node:path";
-import { Candidate, RewriteImports } from "./rewrite-imports.js";
+import { Candidate, Pattern, RewriteImports } from "./rewrite-imports.js";
 import { TaskCallback, TaskFunction } from "undertaker";
 import gulp from "gulp"; const { parallel, src, dest } = gulp;
 import { requireUncached } from "./utils.js";
 
-interface ModInfo {
-    modPath: string;
+interface PkgInfo {
+    files:   Set<string>;
+    exports: Map<string, string>;
     absDir:  string;
 }
 
 export class Vendor {
-    readonly #deps: Map<string, ModInfo> // package to ModInfo
+    readonly #deps: Map<string, PkgInfo> // pkgname to PkgInfo
 
     public constructor(pkgJsonPath: string) {
         const rootMeta = requireUncached(path.resolve(pkgJsonPath));
@@ -25,17 +27,42 @@ export class Vendor {
 
     #populate(pkg: string, metaPath: string): void {
         const meta = requireUncached(metaPath);
-        if (meta.module) {
-            const modInfo = {
-                modPath: meta.module,
+        if (meta.module || (meta.type == "module" && meta.exports)) {
+            const pkgInfo = {
+                files:   new Set<string>,
+                exports: new Map<string, string>(),
                 absDir:  path.resolve(path.dirname(metaPath))
             };
+            if (typeof meta.exports === "string") {
+                pkgInfo.exports.set(".", meta.exports);
+            }
+            else if (typeof meta.exports === "object") {
+                for (const [from, to] of Object.entries(meta.exports)) {
+                    if (typeof to === "string") {
+                        pkgInfo.exports.set(from, to);
+                    }
+                    else {
+                        throw new Error(`${pkg}: non-string "exports" maps are currently not supported`);
+                    }
+                }
+            }
+            else {
+                pkgInfo.exports.set(".", meta.module);
+            }
+            /* pkgInfo.files should include every .js file that are
+             * transitively imported from any modules in
+             * pkgInfo.exports. We don't know what files are, so we assume
+             * everything is imported if it resides in a directory tree in
+             * which at least one exported module resides. */
+            for (const to of pkgInfo.exports.values()) {
+                pkgInfo.files.add(path.join(path.dirname(to), "**"));
+            }
 
-            if (this.#deps.has(pkg) && this.#deps.get(pkg)!.absDir !== modInfo.absDir) {
+            if (this.#deps.has(pkg) && this.#deps.get(pkg)!.absDir !== pkgInfo.absDir) {
                 throw new Error(`We have to vendor conflicting versions of ${pkg} but we don't support that at the moment.`);
             }
             else {
-                this.#deps.set(pkg, modInfo);
+                this.#deps.set(pkg, pkgInfo);
             }
 
             // The package may itself depend on other ones. Vendor them
@@ -68,33 +95,31 @@ export class Vendor {
 
     public aliases(vendorPath: string): Map<string, Candidate[]> {
         return new Map(
-            Array.from(this.#deps.entries()).map(([pkg, modInfo]) => {
-                return [
-                    pkg,
-                    [{
-                        path: path.resolve(vendorPath, pkg, path.basename(modInfo.modPath)),
-                        isSource: false
-                    }]
-                ];
+            Array.from(this.#deps.entries()).flatMap(([pkg, pkgInfo]) => {
+                return Array.from(pkgInfo.exports.entries()).map(([from, to]) => {
+                    return [
+                        path.join(pkg, from),
+                        [{
+                            path: new Pattern(path.join(vendorPath, pkg, to)),
+                            isSource: false
+                        }]
+                    ];
+                });
             }));
     }
 
     public task(vendorPath: string): TaskFunction {
-        // package.json doesn't tell us exactly which files are imported
-        // from the main script. In theory we can parse the script and
-        // discover imported modules, but ugh... we don't want to do it so
-        // we instead assume that any script files in the same directory
-        // tree as that of the main script are needed.
         const rewrite = new RewriteImports();
         rewrite.addAliases(this.aliases(vendorPath));
 
-        const tasks = Array.from(this.#deps.entries()).map(([pkg, modInfo]) => {
-            const absModPath = path.resolve(modInfo.absDir, modInfo.modPath);
+        const tasks = Array.from(this.#deps.entries()).map(([pkg, pkgInfo]) => {
             const destRoot   = path.join(vendorPath, pkg);
             const task       = () =>
-                src("**", {cwd: path.dirname(absModPath), cwdbase: true})
-                  .pipe(rewrite.stream(destRoot))
-                  .pipe(dest(destRoot));
+                src("**", {cwd: pkgInfo.absDir, cwdbase: true})
+                    .pipe(ignore.include(Array.from(pkgInfo.files.values())))
+                    .pipe(ignore.include("**/*.js")) // We are only going to import *.js, nothing else
+                    .pipe(rewrite.stream(destRoot))
+                    .pipe(dest(destRoot));
             Object.defineProperty(task, "name", {value: `vendor:${pkg}`, configurable: true});
             return task;
         });
