@@ -204,7 +204,7 @@ message Foo {
 ```
 
 ```typescript
-import { Foo } from "./foo_pb"; // You need a suffix "_pb" to import them.
+import { Foo } from "./foo_pb.js"; // You need a suffix "_pb" to import them.
 ```
 
 Note that you need to install the `protoc` program on your system to
