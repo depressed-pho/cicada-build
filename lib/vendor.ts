@@ -72,7 +72,7 @@ export class Vendor {
                 this.#populate(subPkg, subMetaPath);
             }
         }
-        else {
+        else if (meta.main || meta.exports) {
             throw new Error(`Package ${pkg} doesn't have an ES2020 module. We don't support vendoring CommonJS modules at the moment.`);
         }
     }
