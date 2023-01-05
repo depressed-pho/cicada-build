@@ -1,5 +1,11 @@
 # Release notes
 
+## 1.2.0 -- not released yet
+
+* `version` fields in `src/manifest.js` can now be set to a string
+  `"self"`, which will be substituted with the version number found in
+  `package.json`.
+
 ## 1.1.0 -- 2023-01-04
 
 * Renamed the package from `@depressed-pho/cicada-build` to

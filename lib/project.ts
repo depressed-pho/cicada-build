@@ -9,10 +9,14 @@ import maniSchema from "./manifest.schema.json" assert {type: "json"};
 import { Validator } from "jsonschema";
 import { requireUncached } from "./utils.js";
 
-function parseVer<T extends string|null>(verStr: T): T extends string ? SemVer : null {
+function parseVer<T extends string|null>(verStr: T, self: SemVer): T extends string ? SemVer : null {
     if (verStr == null) {
         // @ts-ignore: Why this doesn't typecheck?
         return null;
+    }
+    else if (verStr == "self") {
+        // @ts-ignore: Why?
+        return self;
     }
     else {
         const ver = semver.parse(verStr);
@@ -56,11 +60,11 @@ export class Module {
     version:     SemVer;
     include:     Set<string>;
 
-    constructor(modSrc: any) {
+    constructor(modSrc: any, selfVer: SemVer) {
         this.description = modSrc.description;
         this.type        = modSrc.type;
         this.uuid        = uuid.parse(modSrc.uuid);
-        this.version     = parseVer(modSrc.version)!;
+        this.version     = parseVer(modSrc.version, selfVer)!;
         this.include     = parseIncl(modSrc.include);
     }
 
@@ -73,15 +77,15 @@ export class Module {
         };
     }
 
-    static create(modSrc: any): Module {
+    static create(modSrc: any, selfVer: SemVer): Module {
         switch (modSrc.type) {
-        case "resources":      return new ResourcesModule(modSrc);
-        case "script":         return new ScriptModule(modSrc);
-        case "data":           return new ServerDataModule(modSrc);
-        case "client_data":    return new ClientDataModule(modSrc);
-        case "interface":      return new InterfaceModule(modSrc);
-        case "world_template": return new WorldTemplateModule(modSrc);
-        case "skin_pack":      return new SkinPackModule(modSrc);
+        case "resources":      return new ResourcesModule(modSrc, selfVer);
+        case "script":         return new ScriptModule(modSrc, selfVer);
+        case "data":           return new ServerDataModule(modSrc, selfVer);
+        case "client_data":    return new ClientDataModule(modSrc, selfVer);
+        case "interface":      return new InterfaceModule(modSrc, selfVer);
+        case "world_template": return new WorldTemplateModule(modSrc, selfVer);
+        case "skin_pack":      return new SkinPackModule(modSrc, selfVer);
         case "javascript":     throw new Error(`"javascript" is a deprecated module type. Use "script" instead.`);
         default:               throw new Error(`Unknown module type: ${modSrc.type}`);
         }
@@ -92,8 +96,8 @@ export class ScriptModule extends Module {
     language: string;
     entry:    string;
 
-    constructor(modSrc: any) {
-        super(modSrc);
+    constructor(modSrc: any, selfVer: SemVer) {
+        super(modSrc, selfVer);
         this.language = modSrc.language;
         this.entry    = modSrc.entry;
     }
@@ -117,14 +121,14 @@ export class Dependency {
     moduleName?: string;
     version:     SemVer;
 
-    constructor(depSrc: any) {
+    constructor(depSrc: any, selfVer: SemVer) {
         if (depSrc.uuid != null) {
             this.uuid = uuid.parse(depSrc.uuid);
         }
         else {
             this.moduleName = depSrc.module_name;
         }
-        this.version = parseVer(depSrc.version)!;
+        this.version = parseVer(depSrc.version, selfVer)!;
     }
 
     get manifest() {
@@ -143,15 +147,20 @@ export class Metadata {
     generatedWith: Map<string, SemVer[]>;
     url?:          string;
 
-    constructor(metaSrc: any = {}) {
+    constructor(metaSrc: any = {}, selfVer: SemVer) {
         this.authors       = metaSrc.authors;
         this.license       = metaSrc.license;
         this.generatedWith = new Map(
             Object.entries(metaSrc.generated_with ?? [])
-                  .map(([name, vers]) => [name, (vers as any).map(parseVer)]));
+                  .map(([name, vers]) => {
+                      return [
+                          name,
+                          (vers as any).map((ver: string) => parseVer(ver, selfVer))
+                      ];
+                  }));
         this.url           = metaSrc.url;
 
-        this.generatedWith.set("cicada-build", [parseVer(cbMeta.version)]);
+        this.generatedWith.set("cicada-build", [parseVer(cbMeta.version, selfVer)]);
     }
 
     get manifest() {
@@ -191,7 +200,7 @@ export class Pack {
     uuid:                 ArrayLike<number>;
     description:          string;
     version:              SemVer;
-    icon:                 string;
+    icon:                 string|null;
     minEngineVersion:     SemVer|null;
 
     baseGameVersion:      SemVer|null;
@@ -208,23 +217,23 @@ export class Pack {
     archiveSubDir:        string|null;
     installDir:           string|null;
 
-    constructor(packSrc: any, srcDir: string) {
+    constructor(packSrc: any, srcDir: string, selfVer: SemVer) {
         this.name                = packSrc.name;
         this.uuid                = packSrc.uuid;
         this.description         = packSrc.description;
-        this.version             = parseVer(packSrc.version)!;
-        this.icon                = path.resolve(srcDir, packSrc.icon ?? "pack_icon.png");
-        this.minEngineVersion    = parseVer(packSrc.min_engine_version);
+        this.version             = parseVer(packSrc.version, selfVer)!;
+        this.icon                = packSrc.icon ? path.resolve(srcDir, packSrc.icon) : null;
+        this.minEngineVersion    = parseVer(packSrc.min_engine_version, selfVer);
 
         // These are specific to world templates.
-        this.baseGameVersion     = parseVer(packSrc.base_game_version);
+        this.baseGameVersion     = parseVer(packSrc.base_game_version, selfVer);
         this.lockTemplateOptions = packSrc.lock_template_options;
 
         const modDefaults = {
             version: packSrc.version
         };
         this.modules = packSrc.modules.map((modSrc: any) => {
-            return Module.create(merge.recursive(true, modDefaults, modSrc));
+            return Module.create(merge.recursive(true, modDefaults, modSrc), selfVer);
         });
 
         // "dependencies" can either be an array or an object.
@@ -238,16 +247,16 @@ export class Pack {
                     return new Dependency({
                         module_name: name,
                         version
-                    });
+                    }, selfVer);
                 });
             }
             else {
-                return packSrc.dependencies.map((depSrc: any) => new Dependency(depSrc));
+                return packSrc.dependencies.map((depSrc: any) => new Dependency(depSrc, selfVer));
             }
         })();
 
         this.capabilities = packSrc.capabilities ?? [];
-        this.metadata     = new Metadata(packSrc.metadata);
+        this.metadata     = new Metadata(packSrc.metadata, selfVer);
 
         if (this.modules.length == 0) {
             throw new Error("Packs must have at least one module");
@@ -411,7 +420,7 @@ export class Project {
         }
 
         this.name     = meta.name;
-        this.version  = parseVer(meta.version)!;
+        this.version  = semver.parse(meta.version)!;
 
         const defaults = {
             name:        meta.name,
@@ -427,7 +436,7 @@ export class Project {
 
         this.packs = src.packs.map((packSrc0: any) => {
             const packSrc = merge.recursive(true, common, packSrc0);
-            return new Pack(packSrc, srcDir);
+            return new Pack(packSrc, srcDir, this.version);
         });
         if (this.packs.length == 0) {
             throw new Error("A project must have at least one pack.");
