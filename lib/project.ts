@@ -241,7 +241,10 @@ export class Pack {
             if (!packSrc.dependencies) {
                 return [];
             }
-            else if (typeof packSrc.dependencies === "object") {
+            else if (packSrc.dependencies instanceof Array) {
+                return packSrc.dependencies.map((depSrc: any) => new Dependency(depSrc, selfVer));
+            }
+            else {
                 // An object is interpreted as {moduleName: version} pairs.
                 return Object.entries(packSrc.dependencies).map(([name, version]) => {
                     return new Dependency({
@@ -249,9 +252,6 @@ export class Pack {
                         version
                     }, selfVer);
                 });
-            }
-            else {
-                return packSrc.dependencies.map((depSrc: any) => new Dependency(depSrc, selfVer));
             }
         })();
 
