@@ -136,7 +136,7 @@ export class Dependency {
             ...(this.uuid != null
                 ? {uuid:        uuid.stringify(this.uuid)}
                 : {module_name: this.moduleName          }),
-            version: this.version.toString()
+            version: triplet(this.version)
         };
     }
 }

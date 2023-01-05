@@ -5,6 +5,8 @@
 * `version` fields in `src/manifest.js` can now be set to a string
   `"self"`, which will be substituted with the version number found in
   `package.json`.
+* Fixed a bug where dependency arrays in `src/manifest.js` weren't handled
+  correctly.
 
 ## 1.1.0 -- 2023-01-04
 
