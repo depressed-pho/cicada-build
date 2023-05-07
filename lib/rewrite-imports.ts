@@ -182,7 +182,7 @@ class RewriteImportsImpl extends Transform {
         // cannot handle some of modern ES syntaxes we use. So... the
         // "solution" is to apply a damn RegExp transformation.
         const sourceOutput = sourceInput.replaceAll(
-            /(import|export)(?:(.*?)from)?\s*(?:"([^"]+)"|'([^']+)')/g,
+            /^\s*(import|export)(?:(.*?)from)?\s*(?:"([^"]+)"|'([^']+)')/gm,
             (_match, impExp, locals, dqPath, sqPath) => {
                 const origPath = dqPath != null ? dqPath : sqPath;
                 const newPath  = this.#rewritePath(origPath, srcPath, destPath);

@@ -7,6 +7,8 @@
   `package.json`.
 * Fixed a bug where dependency arrays in `src/manifest.js` weren't handled
   correctly.
+* Fixed a bug where commented "import" statements in scripts were
+  erroneously attempted to be rewritten.
 
 ## 1.1.0 -- 2023-01-04
 

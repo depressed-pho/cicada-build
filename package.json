@@ -69,7 +69,7 @@
   "optionalDependencies": {
     "@protobuf-ts/plugin": "^2.8.2",
     "gm": "^1.25.0",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.5"
   },
   "peerDependencies": {
     "gulp": "^4.0.2"
