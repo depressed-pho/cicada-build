@@ -4,25 +4,30 @@ import * as merge from "merge";
 import ts from "gulp-typescript";
 import { requireUncached } from "../utils.js";
 
+const projects = new Map();
 export function transpileTypeScript(tsConfigPath: string) {
-    const tsConfigDefault = {
-        compilerOptions: {
-            rootDir: ".",
-            rootDirs: ["src", "dist/generated"],
-            baseUrl: "src",
-            module: "ES2020",
-            moduleResolution: "nodenext",
-            paths:  {},
-            target: "ES2022",
-            explainFiles: true
-        }
-    };
-    const tsConfig = merge.recursive(
-        true,
-        tsConfigDefault,
-        fs.existsSync(tsConfigPath)
-            ? requireUncached(path.resolve(tsConfigPath))
-            : {});
-
-    return ts(tsConfig.compilerOptions);
+    let proj = projects.get(tsConfigPath);
+    if (!proj) {
+        const tsConfigDefault = {
+            compilerOptions: {
+                rootDir: ".",
+                rootDirs: ["src", "dist/generated"],
+                baseUrl: "src",
+                module: "ES2020",
+                moduleResolution: "nodenext",
+                paths:  {},
+                target: "ES2022",
+                explainFiles: true
+            }
+        };
+        const tsConfig = merge.recursive(
+            true,
+            tsConfigDefault,
+            fs.existsSync(tsConfigPath)
+                ? requireUncached(path.resolve(tsConfigPath))
+                : {});
+        proj = ts.createProject(tsConfig.compilerOptions);
+        projects.set(tsConfigPath, proj);
+    }
+    return proj();
 }

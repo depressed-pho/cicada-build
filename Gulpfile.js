@@ -6,12 +6,13 @@ export async function clean() {
     await rm("dist", {force: true, recursive: true});
 }
 
+const tsProject = ts.createProject("tsconfig.json");
 export const build =
     gulp.series(
         clean,
         function transpile() {
             return gulp.src("lib/**/*.ts", {sourcemaps: true})
-                .pipe(ts("tsconfig.json"))
+                .pipe(tsProject())
                 .pipe(gulp.dest("dist", {sourcemaps: "."}));
         },
         function copyJSON() {
