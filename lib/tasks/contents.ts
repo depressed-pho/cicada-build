@@ -22,8 +22,7 @@ export function contents(cb: TaskCallback): void {
             const srcGlobs   = Array.from(mod.include.values());
 
             if (mod instanceof ScriptModule) {
-                /* Special case: the script module often needs a
-                 * transpilation. */
+                // Special case: script modules often need transpilation.
 
                 // This is unsound. We want our vendor packages to end up
                 // in dist/stage/scripts but there aren't any less terrible
@@ -59,7 +58,7 @@ export function contents(cb: TaskCallback): void {
                                 // THINKME: Maybe support PureScript as well?
                                 return src(srcGlobs, {cwd: "src", cwdbase: true, sourcemaps: true})
                                     .pipe(ignore.include("**/*.ts"))
-                                    .pipe(transpileTypeScript("src/tsconfig.json"))
+                                    .pipe(transpileTypeScript("src/tsconfig.json", genPath))
                                     .pipe(rewrite.stream(buildPath))
                                     .pipe(dest(buildPath, {sourcemaps: "."}));
                             }

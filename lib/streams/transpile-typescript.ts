@@ -5,13 +5,13 @@ import ts from "gulp-typescript";
 import { requireUncached } from "../utils.js";
 
 const projects = new Map();
-export function transpileTypeScript(tsConfigPath: string) {
+export function transpileTypeScript(tsConfigPath: string, genPath: string) {
     let proj = projects.get(tsConfigPath);
     if (!proj) {
         const tsConfigDefault = {
             compilerOptions: {
                 rootDir: ".",
-                rootDirs: ["src", "dist/generated"],
+                rootDirs: ["src", genPath],
                 baseUrl: "src",
                 module: "ES2020",
                 moduleResolution: "nodenext",
