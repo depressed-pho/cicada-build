@@ -38,6 +38,7 @@ class CompileProtobuf extends Writable {
             this.#protoc!, [
                 "--ts_out", destDir,
                 "--ts_opt", "add_pb_suffix",
+                "--ts_opt", "long_type_string", // Bedrock doesn't support bigints
                 "--ts_opt", "output_javascript_es2020",
                 "--ts_opt", "ts_nocheck",
                 "--proto_path", path.dirname(vinyl.path),
