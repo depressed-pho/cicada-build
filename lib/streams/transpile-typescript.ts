@@ -13,8 +13,8 @@ export function transpileTypeScript(tsConfigPath: string, genPath: string) {
                 rootDir: ".",
                 rootDirs: ["src", genPath],
                 baseUrl: "src",
-                module: "ES2020",
-                moduleResolution: "nodenext",
+                module: "esnext",
+                moduleResolution: "bundler",
                 paths:  {},
                 target: "ES2022",
                 explainFiles: true

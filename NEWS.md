@@ -1,5 +1,9 @@
 # Release notes
 
+## 1.2.1 -- 2024-01-17
+
+* `cicada-build` now supports TypeScript 5.
+
 ## 1.2.0 -- 2023-09-17
 
 * `version` fields in `src/manifest.js` can now be set to a string

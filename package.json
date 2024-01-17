@@ -1,6 +1,6 @@
 {
   "name": "cicada-build",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Build system for Minecraft Bedrock addons based on Gulp",
   "type": "module",
   "bin": {
@@ -47,7 +47,7 @@
     "@types/yazl": "^2.4.2",
     "gulp": "^4.0.2",
     "pure-uuid": "^1.6.2",
-    "typescript": "^4.7.4"
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "clear-module": "^4.1.2",
@@ -69,7 +69,7 @@
   "optionalDependencies": {
     "@protobuf-ts/plugin": "^2.8.2",
     "gm": "^1.25.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.3.3"
   },
   "peerDependencies": {
     "gulp": "^4.0.2"
