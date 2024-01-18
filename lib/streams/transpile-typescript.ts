@@ -16,7 +16,9 @@ export function transpileTypeScript(tsConfigPath: string, genPath: string) {
                 module: "esnext",
                 moduleResolution: "bundler",
                 paths:  {},
-                target: "ES2022",
+                // The latest version of QuickJS supports ES2023 but MCBE
+                // uses an older version.
+                target: "ES2020",
                 explainFiles: true
             }
         };
