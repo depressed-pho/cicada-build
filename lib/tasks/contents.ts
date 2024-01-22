@@ -35,7 +35,7 @@ export function contents(cb: TaskCallback): void {
 
                 // Add an alias from "package.json" to
                 // "{scriptRoot}/package.js". This file is not necessarily
-                // used but unused scripts will be removed anyway.
+                // used but unused scripts will be removed anyway. (FIXME: Do it.)
                 const pkgJsPath = path.join(vendorPath, "package.js");
                 rewrite.addAliases([
                     ["package.json", [{
