@@ -219,6 +219,7 @@ class RewriteImportsImpl extends Transform {
         const base     = path.resolve(path.dirname(srcPath), origPath);
         const resolved = this.#resolve(origPath, srcPath, base);
         if (resolved != null) {
+            // FIXME: *.json -> *.js, preferably via aliases.
             return resolved;
         }
         else {

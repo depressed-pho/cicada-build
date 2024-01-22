@@ -3,6 +3,8 @@
 ## 1.2.1 -- 2024-01-17
 
 * `cicada-build` now supports TypeScript 5.
+* TypeScript and JavaScript modules can now import `package.json` by doing
+  `import pkg from "package.json"`.
 
 ## 1.2.0 -- 2023-09-17
 
