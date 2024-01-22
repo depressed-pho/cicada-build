@@ -4,9 +4,10 @@ import gulp from "gulp"; const { parallel, series, src, dest } = gulp;
 import { TaskCallback } from "undertaker";
 import { Project, ScriptModule } from "../project.js";
 import { Vendor } from "../vendor.js";
-import { RewriteImports } from "../rewrite-imports.js";
+import { Pattern, RewriteImports } from "../rewrite-imports.js";
 import { compileProtobuf } from "../streams/compile-protobuf.js";
-import { transpileTypeScript } from "../streams/transpile-typescript.js";
+import { transpileJSON as transpile_JSON } from "../streams/transpile-json.js";
+import { transpileTypeScript as transpile_TypeScript } from "../streams/transpile-typescript.js";
 import { validateJSON } from "../streams/validate-json.js";
 
 export function contents(cb: TaskCallback): void {
@@ -32,6 +33,17 @@ export function contents(cb: TaskCallback): void {
                 const rewrite    = new RewriteImports("src/tsconfig.json");
                 rewrite.addAliases(vendor.aliases(vendorPath));
 
+                // Add an alias from "package.json" to
+                // "{scriptRoot}/package.js". This file is not necessarily
+                // used but unused scripts will be removed anyway.
+                const pkgJsPath = path.join(vendorPath, "package.js");
+                rewrite.addAliases([
+                    ["package.json", [{
+                        path: new Pattern(pkgJsPath),
+                        isSource: false
+                    }]]
+                ]);
+
                 tasks.push(
                     series(
                         parallel(
@@ -44,7 +56,14 @@ export function contents(cb: TaskCallback): void {
                             },
                             // Also vendor run-time dependencies because
                             // RewriteImports is going to need them.
-                            vendor.task(vendorPath)
+                            vendor.task(vendorPath),
+                            // Translate package.json into
+                            // package.js. Scripts may need it.
+                            function packageJson() {
+                                return src("package.json", {cwd: ".", cwdbase: true})
+                                    .pipe(transpile_JSON())
+                                    .pipe(dest(vendorPath));
+                            }
                         ),
                         parallel(
                             function copy() {
@@ -54,13 +73,19 @@ export function contents(cb: TaskCallback): void {
                                     .pipe(rewrite.stream(buildPath))
                                     .pipe(dest(buildPath));
                             },
-                            function transpile() {
-                                // THINKME: Maybe support PureScript as well?
+                            // THINKME: Maybe support PureScript as well?
+                            function transpileTypeScript() {
                                 return src(srcGlobs, {cwd: "src", cwdbase: true, sourcemaps: true})
                                     .pipe(ignore.include("**/*.ts"))
-                                    .pipe(transpileTypeScript("src/tsconfig.json", genPath))
+                                    .pipe(transpile_TypeScript("src/tsconfig.json", genPath))
                                     .pipe(rewrite.stream(buildPath))
                                     .pipe(dest(buildPath, {sourcemaps: "."}));
+                            },
+                            function transpileJSON() {
+                                return src(srcGlobs, {cwd: "src", cwdbase: true})
+                                    .pipe(ignore.include("**/*.json"))
+                                    .pipe(transpile_JSON())
+                                    .pipe(dest(buildPath));
                             }
                         )
                     ));

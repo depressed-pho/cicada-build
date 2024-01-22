@@ -32,6 +32,10 @@ export class Pattern {
         return this.replaceWildcard("*");
     }
 
+    [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return inspect(this.toString());
+    }
+
     replaceWildcard(str: string): string {
         if (this.#right !== undefined) {
             return this.#left + str + this.#right;
