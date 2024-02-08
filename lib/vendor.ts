@@ -6,6 +6,10 @@ import { TaskCallback, TaskFunction } from "undertaker";
 import gulp from "gulp"; const { parallel, src, dest } = gulp;
 import { requireUncached } from "./utils.js";
 
+const EXCLUDED_PACKAGES_BY_DEFAULT = [
+    "patch-package",
+];
+
 interface PkgInfo {
     files:   Set<string>;
     exports: Map<string, string>;
@@ -13,13 +17,18 @@ interface PkgInfo {
 }
 
 export class Vendor {
-    readonly #deps: Map<string, PkgInfo> // pkgname to PkgInfo
+    readonly #deps: Map<string, PkgInfo>; // pkgname to PkgInfo
+    readonly #excluded: Set<string>; // pkgname
 
-    public constructor(pkgJsonPath: string) {
+    public constructor(pkgJsonPath: string, exclude?: string[]) {
         const rootMeta = requireUncached(path.resolve(pkgJsonPath));
 
         this.#deps = new Map();
+        this.#excluded = new Set([...EXCLUDED_PACKAGES_BY_DEFAULT, ...(exclude ?? [])]);
+
         for (const pkg of Object.keys(rootMeta.dependencies ?? {})) {
+            if (this.#excluded.has(pkg))
+                continue;
             const metaPath = this.#resolve(pkg, path.dirname(pkgJsonPath));
             this.#populate(pkg, metaPath);
         }
@@ -68,6 +77,8 @@ export class Vendor {
             // The package may itself depend on other ones. Vendor them
             // recursively.
             for (const subPkg of Object.keys(meta.dependencies ?? {})) {
+                if (this.#excluded.has(pkg))
+                    continue;
                 const subMetaPath = this.#resolve(subPkg, path.dirname(metaPath));
                 this.#populate(subPkg, subMetaPath);
             }

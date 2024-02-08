@@ -1,5 +1,10 @@
 # Release notes
 
+## 1.2.3 -- not released yet
+
+* ``patch-package`` is now excluded from vendoring even if it is declared
+  as a runtime dependency.
+
 ## 1.2.2 -- 2024-01-22
 
 * TypeScript and JavaScript modules can now import `package.json` by doing
