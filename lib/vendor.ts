@@ -77,7 +77,7 @@ export class Vendor {
             // The package may itself depend on other ones. Vendor them
             // recursively.
             for (const subPkg of Object.keys(meta.dependencies ?? {})) {
-                if (this.#excluded.has(pkg))
+                if (this.#excluded.has(subPkg))
                     continue;
                 const subMetaPath = this.#resolve(subPkg, path.dirname(metaPath));
                 this.#populate(subPkg, subMetaPath);
