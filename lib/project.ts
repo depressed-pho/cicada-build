@@ -4,8 +4,8 @@ import * as path from "node:path";
 import * as semver from "semver";
 import type { SemVer } from "semver";
 import * as uuid from "uuid";
-import cbMeta from "../package.json" assert {type: "json"};
-import maniSchema from "./manifest.schema.json" assert {type: "json"};
+import cbMeta from "../package.json" with {type: "json"};
+import maniSchema from "./manifest.schema.json" with {type: "json"};
 import { Validator } from "jsonschema";
 import { requireUncached } from "./utils.js";
 

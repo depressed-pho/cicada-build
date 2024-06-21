@@ -1,9 +1,11 @@
 # Release notes
 
-## 1.2.3 -- not released yet
+## 1.2.3 -- 2024-06-21
 
 * ``patch-package`` is now excluded from vendoring even if it is declared
   as a runtime dependency.
+* Compatibility with Node 22: Import assetions is no longer supported. Use
+  import attributes instead.
 
 ## 1.2.2 -- 2024-01-22
 
