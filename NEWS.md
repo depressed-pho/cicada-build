@@ -1,5 +1,12 @@
 # Release notes
 
+## 1.3.0 -- 2025-06-19
+
+* ``packs[*].name`` can now have substitution strings:
+  * ``${name}`` is substituted with the common pack name.
+  * ``${version}`` is substituted with the common pack version.
+* Updated dependencies for TypeScript 5.8.
+
 ## 1.2.3 -- 2024-06-21
 
 * ``patch-package`` is now excluded from vendoring even if it is declared

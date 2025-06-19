@@ -217,8 +217,16 @@ export class Pack {
     archiveSubDir:        string|null;
     installDir:           string|null;
 
-    constructor(packSrc: any, srcDir: string, selfVer: SemVer) {
-        this.name                = packSrc.name;
+    constructor(packSrc: any, srcDir: string, selfName: string, selfVer: SemVer) {
+        this.name = packSrc.name.replaceAll(
+            /\$\{(.*?)\}/g, (_: string, variable: string) => {
+                switch (variable.trim()) {
+                    case "name":    return selfName;
+                    case "version": return selfVer.toString();
+                    default:
+                        throw new Error(`Unknown substitution in pack name: ${variable.trim()}`);
+                }
+            });
         this.uuid                = packSrc.uuid;
         this.description         = packSrc.description;
         this.version             = parseVer(packSrc.version, selfVer)!;
@@ -436,7 +444,7 @@ export class Project {
 
         this.packs = src.packs.map((packSrc0: any) => {
             const packSrc = merge.recursive(true, common, packSrc0);
-            return new Pack(packSrc, srcDir, this.version);
+            return new Pack(packSrc, srcDir, common.name, semver.parse(common.version)!);
         });
         if (this.packs.length == 0) {
             throw new Error("A project must have at least one pack.");

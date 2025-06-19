@@ -102,8 +102,7 @@ export function contents(cb: TaskCallback): void {
 
         tasks.push(
             function copyLicense() {
-                return src("LICENSE", {allowEmpty: true})
-                    .pipe(src("COPYING", {allowEmpty: true}))
+                return src(["LICENSE", "COPYING"], {allowEmpty: true})
                     .pipe(dest(buildPath));
             });
     }
